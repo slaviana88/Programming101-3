@@ -1,0 +1,63 @@
+SELECT* FROM Employees;
+
+SELECT FirstName AS first_name, LastName, title
+FROM employees;
+
+SELECT*
+FROM employees
+WHERE City = "Seattle";
+
+SELECT*
+FROM employees
+WHERE City = "London";
+
+SELECT* FROM employees
+WHERE Title LIKE "Sales%";
+
+SELECT FirstName || " " || LastName AS name, TitleOfCourtesy
+FROM employees
+WHERE Title LIKE "%Sales%" AND TitleOfCourtesy IN ( "Mrs.", "Ms.");
+
+SELECT  FirstName || " " || LastName AS name, BirthDate
+FROM Employees
+ORDER BY BirthDate ASC 
+LIMIT 5;
+
+SELECT  FirstName || " " || LastName AS name, HireDate
+FROM Employees
+ORDER BY HireDate ASC 
+LIMIT 5;
+
+SELECT  FirstName || " " || LastName AS name, ReportsTo
+FROM Employees;
+
+SELECT  FirstName || " " || LastName AS name, ReportsTo
+FROM Employees
+WHERE ReportsTo is null;
+
+SELECT  e1.FirstName || " " || e1.LastName AS employee_name,  
+e2.FirstName || " " || e2.LastName AS manager_name
+FROM Employees AS e1
+JOIN Employees AS e2 ON e1.ReportsTo = e2.EmployeeID;
+
+SELECT COUNT( FirstName || " " || LastName) AS name, TitleOfCourtesy
+FROM employees
+WHERE Title LIKE "%Sales%" AND TitleOfCourtesy IN ( "Mrs.", "Ms.");
+
+SELECT COUNT(FirstName || " " || LastName) AS name, TitleOfCourtesy
+FROM employees
+WHERE Title LIKE "%Sales%" AND TitleOfCourtesy not IN ( "Mrs.", "Ms.");
+
+SELECT  e1.FirstName || " " || e1.LastName AS employee_name,  
+e2.FirstName || " " || e2.LastName AS manager_name
+FROM Employees AS e1
+LEFT JOIN Employees AS e2 ON e1.ReportsTo = e2.EmployeeID;
+
+SELECT  e1.FirstName || " " || e1.LastName AS employee_name,  
+e2.FirstName || " " || e2.LastName AS manager_name
+FROM Employees AS e1
+ JOIN Employees AS e2 ON e1.ReportsTo = e2.EmployeeID;
+ 
+SELECT City, COUNT(EmployeeID)
+FROM Employees 
+GROUP BY City;
