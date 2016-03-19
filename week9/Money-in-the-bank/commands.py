@@ -81,4 +81,3 @@ class Commands:
                 print("changepass - for changing passowrd")
                 print("change-message - for changing users message")
                 print("show-message - for showing users message")
-
