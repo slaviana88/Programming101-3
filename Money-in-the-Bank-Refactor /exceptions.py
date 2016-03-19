@@ -12,3 +12,11 @@ class WrongPassword(Exception):
 
 class UserBlockedException(Exception):
     pass
+
+
+class DepositInvalidAmount(Exception):
+    pass
+
+
+class WithdrawError(Exception):
+    pass

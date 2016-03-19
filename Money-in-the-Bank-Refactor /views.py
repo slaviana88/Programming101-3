@@ -1,4 +1,5 @@
-from controller import ClientAlreadyRegistered, WrongPassword, ClientNotRegistered, UserBlockedException
+from controller import ClientAlreadyRegistered, WrongPassword, ClientNotRegistered, \
+                        UserBlockedException, DepositInvalidAmount, WithdrawError
 from validation import StrongPasswordException
 import getpass
 
@@ -32,6 +33,7 @@ class MainView:
                 try:
                     self.controller.login(username, password)
                     print('You are login as {}'.format(username))
+                    self.main_menu(username)
                 except WrongPassword as e:
                     print(e)
                 except ClientNotRegistered as e:
@@ -47,10 +49,38 @@ class MainView:
 
                 try:
                     self.controller.send_reset_password(username)
-                    print("Lqlq")
                     token = input('Check your email and write token: ')
                     if self.controller.check_token(username, token):
                         new_password = input('New password: ')
                         self.controller.update_password(username, new_password)
                 except Exception as e:
                     print(e)
+
+    def main_menu(self, username):
+        while True:
+            command = input("Logged>>> ")
+
+            if command == 'deposit':
+                money = input("Enter amount: ")
+
+                try:
+                    self.transaction_controller.deposit(username, money)
+                except DepositInvalidAmount as e:
+                    print(e)
+
+            if command == 'withdraw':
+                money = input("Enter amount: ")
+
+                try:
+                    self.transaction_controller.withdraw(username, money)
+                except WithdrawError as e:
+                    print(e)
+
+            if command == 'balance':
+                try:
+                    print(self.transaction_controller.balance(username))
+                except:
+                    pass
+
+            if command == 'exit':
+                break

@@ -1,6 +1,3 @@
-from WeaponAndSpell import Weapon, Spell
-
-
 class Hero:
     def __init__(self, name, title, health, mana, mana_regeneration_rate):
         self.name = name
@@ -14,7 +11,7 @@ class Hero:
         self.spell = None
 
     def __str__(self):
-        return "Hero(hp:{})".format(self.health)
+        return "Hero(health={}, mana={})".format(self.health, self.mana)
 
     def __hash__(self):
         return hash(self.__str__())
@@ -35,11 +32,10 @@ class Hero:
         return self.mana
 
     def can_cast(self):
-        if self.mana == 0:
-            return False
-        if self.spell is not None:
-            if self.mana >= self.spell.get_mana_cost():
+        if self.has_spell():
+            if self.get_mana() >= self.spell.get_mana_cost():
                 return True
+
         return False
 
     def equip(self, weapon):
@@ -49,13 +45,13 @@ class Hero:
         self.spell = spell
 
     def take_mana(self, mana):
-        if self.mana + mana > self.__max_mana:
+        if self.get_mana() + mana > self.__max_mana:
             self.mana = self.__max_mana
         else:
             self.mana += mana
 
     def take_damage(self, damage):
-        if self.health - damage < 0:
+        if self.get_health() - damage < 0:
             self.health = 0
         else:
             self.health -= damage
@@ -63,22 +59,34 @@ class Hero:
     def take_healing(self, health):
         if not self.is_alive():
             return False
-        if self.health + health > self.__max_health:
+
+        if self.get_health() + health > self.__max_health:
             self.health = self.__max_health
         else:
             self.health += health
 
+        return True
+
+    def has_weapon(self):
+        return self.weapon is not None
+
+    def has_spell(self):
+        return self.spell is not None
+
     def attack(self, by=""):
         if by == "weapon":
-            if self.weapon is not None:
+            if self.has_weapon():
                 return self.weapon.get_damage()
+
         elif by == "magic":
-            if self.spell is not None:
+            if self.has_spell():
                 if self.can_cast():
                     self.mana -= self.spell.get_mana_cost()
                     return self.spell.get_damage()
+
                 raise Exception("Not enough mana.")
-        return self.damage
+
+        return 0
 
 
 class Enemy:
@@ -90,7 +98,7 @@ class Enemy:
         self.damage = damage
 
     def __str__(self):
-        return "Enemy({}health - {} mana)".format(self.__health, self.__mana)
+        return "Enemy(health={},mana={},damage={})".format(self.health, self.mana, self.damage)
 
     def __hash__(self):
         return hash(self.__str__())
@@ -108,11 +116,10 @@ class Enemy:
         return self.mana
 
     def can_cast(self):
-        if self.mana == 0:
-            return False
         if self.damage is not None:
             if self.mana >= self.spell.get_mana_cost():
                 return True
+
         return False
 
     def take_mana(self, mana):
@@ -130,24 +137,31 @@ class Enemy:
     def take_healing(self, health):
         if not self.is_alive():
             return False
+
         if self.health + health > self.__max_health:
             self.health = self.__max_health
         else:
             self.health += health
 
+        return True
+
+    def has_weapon(self):
+        return self.weapon is not None
+
+    def has_spell(self):
+        return self.spell is not None
+
     def attack(self, by=""):
         if by == "weapon":
-            if self.weapon is not None:
+            if self.has_weapon():
                 return self.weapon.get_damage()
+
         elif by == "magic":
-            if self.spell is not None:
+            if self.has_spell():
                 if self.can_cast():
                     self.mana -= self.spell.get_mana_cost()
                     return self.spell.get_damage()
-                raise Exception("Not enough mana.")
-        return self.damage
 
-    def attack(self):
-        if not self.damage:
-            raise Exception("Not enough damage")
-        if self.damage > 0:
+                raise Exception("Not enough mana.")
+
+        return 0

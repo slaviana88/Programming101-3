@@ -8,6 +8,7 @@ import datetime
 import smtplib
 from local_settings import PASSWORD
 
+
 class AuthenticationController:
     def __init__(self, session):
         self.session = session
@@ -35,7 +36,7 @@ class AuthenticationController:
 
     def create_client_info(self):
         user = Client(username=self.__username, password=self.__hash_password,
-                      salt=self.__salt, email=self.__email)
+                      salt=self.__salt, email=self.__email, balance=0)
 
         return user
 
@@ -124,7 +125,7 @@ class AuthenticationController:
     def is_blocked(self):
         r = self.session.query(BlockedUser.block_end).\
             filter(BlockedUser.client_id == self.__client_id).\
-            order_by(Blocked_users.block_end.desc()).first()
+            order_by(BlockedUser.block_end.desc()).first()
 
         if r is None:
             return False
@@ -151,7 +152,7 @@ class AuthenticationController:
 
         fromaddr = 'monkovamonika@gmail.com'
         toaddrs = self.select_email_by_username()
-        msg = "Your new password is {}".format(new_token)
+        msg = "Your token is {}".format(new_token)
         username = 'monkovamonika@gmail.com'
         password = PASSWORD
         server = smtplib.SMTP('smtp.gmail.com:587')
@@ -166,8 +167,7 @@ class AuthenticationController:
         self._get_id()
 
         t = self.session.query(Token.token).filter(
-            Token.client_id == self.__client_id).order_by(
-            Token.id.desc()).one()
+            Token.client_id == self.__client_id).one()
 
         return t == token2
 
@@ -176,8 +176,8 @@ class AuthenticationController:
         if validator.is_valid(new_password):
             hash_password, salt = hash_password(password)
 
-        user = self.session.query(Client).filter(
-            Client.username == username).one()
+        user = self.session.query(Client).\
+                filter(Client.username == username).one()
         user.password = hash_password
         user.salt = salt
         self._commit_object(user)
@@ -190,40 +190,36 @@ class TransactionController:
     def __commit(self):
         return self.session.commit()
 
-    def deposit(self, client, money_amount):
-        if money_amount >= 0:
-            raise ValueError("You want to deposit invalid sum.")
-
-        user = self.session.query(Client).\
-                filter(Client.email == client.email).first()
-
-        if user is None:
-            raise NoSuchCLient('There is no such client.')
-
-        user.balance += money_amount
+    def _commit_object(self, obj):
+        self.session.add(obj)
         self.__commit()
 
-    def withdraw(self, client, money_amount):
-        if money_amount <= 0:
+    def deposit(self, username, money_amount):
+        if int(money_amount) <= 0:
+            raise DepositInvalidAmount("You want to deposit invalid sum.")
+
+        user = self.session.query(Client).\
+                filter(Client.username == username).first()
+
+        user.balance += int(money_amount)
+        self._commit_object(user)
+
+    def withdraw(self, username, money):
+        if int(money) <= 0:
             raise ValueError("You want to withdraw invalid sum.")
 
         user = self.session.query(Client).\
-                filter(Client.email == client.email).first()
+                filter(Client.username == username).first()
 
-        if user is None:
-            raise NoSuchCLient('There is no such client.')
-
-        if user.balance - money_amount < 0:
+        if user.balance - int(money) < 0:
             raise WithdrawError("You don't have enough money.")
-        else:
-            user.balance -= money_amount
 
-        self.__commit()
+        user.balance -= int(money)
 
-    def display_balance(self, client):
+        self._commit_object(user)
+
+    def balance(self, username):
         user = self.session.query(Client).\
-                filter(Client.email == client.email).first()
-        if user is None:
-            raise NoSuchCLient('There is no such client.')
+                filter(Client.username == username).first()
 
-        return "{}$".format(user.balance)
+        return "Balance - {}$".format(user.balance)
